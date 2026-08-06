@@ -19,10 +19,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::6}" >> $GITHUB_ENV
+        shell: bash
+        run: |
+            echo "COMMIT_ID=${GITHUB_SHA::6}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           push: true
-          tags: alipendix/python-app:${{ env.SHORT_SHA }}
+          tags: alipendix/python-app:${{ env.COMMIT_ID }}
