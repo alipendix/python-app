@@ -2,24 +2,27 @@ name: ci
 
 on:
   push:
-    paths:
-      - 'src/**'
     branches:
       - main
+    paths:
+      - 'src/**'
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+
     steps:
-      -
-        name: Login to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::6}" >> $GITHUB_ENV
+
+      - name: Build and push
         uses: docker/build-push-action@v7
         with:
           push: true
-          tags: alipendix/python-app:${{ github.sha }}
+          tags: alipendix/python-app:${{ env.SHORT_SHA }}
