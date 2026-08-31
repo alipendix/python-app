@@ -36,14 +36,23 @@ jobs:
   cd:
     runs-on: self-hosted
     needs: [ci]
+    
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
       - name: Modify values files
         shell: bash
         run: |
           echo ${{ needs.ci.outputs.commit_id }}
           pip install yq
           yq -Yi '.image.tag = ${{ needs.ci.outputs.commit_id }}' charts/python-app/values.yaml
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Update image tag to ${{ needs.ci.outputs.commit_id }}"
 
       - name: Install ArgoCD CLI
         shell: bash
@@ -66,3 +75,6 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }}
 
           argocd app sync python
+      
+  
+         
