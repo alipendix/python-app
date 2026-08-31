@@ -11,8 +11,13 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    outputs:
+      commit_id: ${{ steps.vars.outputs.commit_id }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
@@ -20,34 +25,33 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set short SHA
+        id: vars
         shell: bash
         run: |
-            echo "COMMIT_ID=${GITHUB_SHA::6}" >> $GITHUB_ENV
+          echo "commit_id=${GITHUB_SHA::6}" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           push: true
-          tags: alipendix/python-app:${{ env.COMMIT_ID }}
-
-    outputs:
-      commit_id ${{ env.COMMIT_ID }}
+          tags: alipendix/python-app:${{ steps.vars.outputs.commit_id }}
 
   cd:
     runs-on: self-hosted
-    needs: [ci]
-    
+    needs: ci
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-    
-      - name: Modify values files
+
+      - name: Modify values file
         shell: bash
         run: |
-          echo ${{ needs.ci.outputs.commit_id }}
+          echo "Commit ID: ${{ needs.ci.outputs.commit_id }}"
+
           pip install yq
-          yq -Yi '.image.tag = ${{ needs.ci.outputs.commit_id }}' charts/python-app/values.yaml
+
+          yq -Yi '.image.tag = "${{ needs.ci.outputs.commit_id }}"' charts/python-app/values.yaml
 
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
@@ -58,12 +62,14 @@ jobs:
         shell: bash
         run: |
           curl -sSL -o argocd \
-          https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+
           chmod +x argocd
           sudo mv argocd /usr/local/bin/
+
           argocd version --client
 
-      - name: Argocd app sync
+      - name: ArgoCD app sync
         shell: bash
         run: |
           echo "Syncing ArgoCD application..."
@@ -72,9 +78,6 @@ jobs:
             --insecure \
             --grpc-web \
             --username admin \
-            --password ${{ secrets.ARGOCD_PASSWORD }}
+            --password "${{ secrets.ARGOCD_PASSWORD }}"
 
           argocd app sync python
-      
-  
-         
