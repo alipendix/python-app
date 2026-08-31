@@ -37,10 +37,12 @@ jobs:
       - name: Install ArgoCD CLI
         shell: bash
         run: |
-          curl -ksSL -o argocd https://argocd-server.argocd.svc.cluster.local/downloads/argocd-linux-amd64
+          curl -sSL -o argocd \
+          https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
           chmod +x argocd
-          sudo mv ./argocd /usr/local/bin/argocd
-
+          sudo mv argocd /usr/local/bin/
+          argocd version --client
+          
       - name: Argocd app sync
         shell: bash
         run: |
