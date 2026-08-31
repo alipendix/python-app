@@ -34,6 +34,13 @@ jobs:
     needs: [ci]
 
     steps:
+      - name: Install ArgoCD CLI
+        shell: bash
+        run: |
+          curl -ksSL -o argocd https://argocd-server.argocd.svc.cluster.local/downloads/argocd-linux-amd64
+          chmod +x argocd
+          mv ./argocd /usr/local/bin/argocd
+
       - name: Argocd app sync
         shell: bash
         run: |
