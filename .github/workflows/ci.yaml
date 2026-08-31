@@ -1,4 +1,4 @@
-name: ci
+name: cicd
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
       - 'src/**'
 
 jobs:
-  docker:
-    runs-on: self-hosted
+  ci:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Login to Docker Hub
@@ -28,3 +28,22 @@ jobs:
         with:
           push: true
           tags: alipendix/python-app:${{ env.COMMIT_ID }}
+
+  cd:
+    runs-on: self-hosted
+    needs: [ci]
+
+    steps:
+      - name: Argocd app sync
+        shell: bash
+        run: |
+          echo "Syncing ArgoCD application..."
+          argocd login argocd-server.argocd.svc.cluster.local \
+          --insecure \
+          --grpc-web \
+          -- username admin \
+          --password ${{ secrets.ARGOCD_PASSWORD }}
+          
+          argocd sync python
+
+    
