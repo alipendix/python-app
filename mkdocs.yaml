@@ -1,5 +1,6 @@
 site_name: 'python-app'
 site_description: 'Main documentation for python-app'
+
 repo_url: https://github.com/alipendix/python-app
 edit_uri: edit/master/docs
 
@@ -8,4 +9,4 @@ plugins:
 
 nav:
   - Overview:
-      - Getting Started: 'docs/index.md'
+      - Getting Started: index.md
