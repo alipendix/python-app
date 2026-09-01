@@ -46,13 +46,17 @@ jobs:
 
       - name: Install yq
         run: |
-          sudo wget -O /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          curl -L \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+            -o yq
+          chmod +x yq
+          sudo mv yq /usr/local/bin/yq
 
       - name: Modify values file
         run: |
+          echo "Commit ID: ${{ needs.ci.outputs.commit_id }}"
           yq -i '.image.tag = "${{ needs.ci.outputs.commit_id }}"' charts/python-app/values.yaml
+
 
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
